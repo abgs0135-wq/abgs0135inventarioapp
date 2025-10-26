@@ -26,7 +26,7 @@ DEFAULT_USERS = [
     {"usuario": "teniente", "password": "jefe1", "nombre": "Teniente", "correo": ""},
     {"usuario": "parquista", "password": "encargado1", "nombre": "Parquista", "correo": ""},
     # si quieres añadir "sargento" desde el inicio, puedes descomentar esto:
-    # {"usuario": "sargento", "password": "mando1", "nombre": "Sargento", "correo": ""},
+    {"usuario": "sargento", "password": "mando1", "nombre": "Sargento", "correo": ""},
 ]
 
 # =========================
@@ -36,8 +36,35 @@ DEFAULT_USERS = [
 # IMPORTANTE: cuando actualices esto y quieras regenerar el CSV limpio,
 # borra data/inventario.csv en GitHub y reinicia la app.
 INVENTARIO_BASE = [
+       # LOTE 1 - CMAS
+    {"categoria": "LOTE 1 - CMAS", "material": "Señales de pasillo", "cantidad_total": 18, "en_parque": 18, "fuera_parque": 0, "operativos": 18, "unidad": "uds"},
+    {"categoria": "LOTE 1 - CMAS", "material": "Señales minas", "cantidad_total": 35, "en_parque": 35, "fuera_parque": 0, "operativos": 35, "unidad": "uds"},
+    {"categoria": "LOTE 1 - CMAS", "material": "Puntos base", "cantidad_total": 3, "en_parque": 3, "fuera_parque": 0, "operativos": 3, "unidad": "uds"},
     {"categoria": "LOTE 1 - CMAS", "material": "Perrillo", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
     {"categoria": "LOTE 1 - CMAS", "material": "Cuerda 6 m", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 1 - CMAS", "material": "Agujas de marcar", "cantidad_total": 8, "en_parque": 8, "fuera_parque": 0, "operativos": 8, "unidad": "uds"},
+    {"categoria": "LOTE 1 - CMAS", "material": "Cartera topográfica", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 1 - CMAS", "material": "Señal caída granadas", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 1 - CMAS", "material": "Conos", "cantidad_total": 2, "en_parque": 2, "fuera_parque": 0, "operativos": 2, "unidad": "uds"},
+        # LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Caja arrastraminas", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Garfio arrastraminas", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Bastones de sondeo", "cantidad_total": 2, "en_parque": 2, "fuera_parque": 0, "operativos": 2, "unidad": "uds"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Banderolas amarillas", "cantidad_total": 6, "en_parque": 6, "fuera_parque": 0, "operativos": 6, "unidad": "uds"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Banderolas rojas", "cantidad_total": 4, "en_parque": 4, "fuera_parque": 0, "operativos": 4, "unidad": "uds"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Redes de sondeo", "cantidad_total": 2, "en_parque": 2, "fuera_parque": 0, "operativos": 2, "unidad": "uds"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Banderola roja", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Banderola verde", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Sombreretes", "cantidad_total": 10, "en_parque": 10, "fuera_parque": 0, "operativos": 10, "unidad": "uds"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Cintas polidiamida", "cantidad_total": 2, "en_parque": 2, "fuera_parque": 0, "operativos": 2, "unidad": "uds"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Cuaderno de campo", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Maceta", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Zapapicos", "cantidad_total": 3, "en_parque": 3, "fuera_parque": 0, "operativos": 3, "unidad": "uds"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Garfio levantaminas", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Piqueta larga", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Piqueta corta", "cantidad_total": 1, "en_parque": 1, "fuera_parque": 0, "operativos": 1, "unidad": "ud"},
+    {"categoria": "LOTE 2 - MOVILIDAD/CONTRAMOVILIDAD 1", "material": "Cuerdas", "cantidad_total": 2, "en_parque": 2, "fuera_parque": 0, "operativos": 2, "unidad": "uds"},
+
     {"categoria": "MOCHILA BLAEX LIMPIEZA DE RUTA", "material": "Sargentos", "cantidad_total": 4, "en_parque": 4, "fuera_parque": 0, "operativos": 4, "unidad": "uds"},
     {"categoria": "MINAS", "material": "CC", "cantidad_total": 200, "en_parque": 200, "fuera_parque": 0, "operativos": 200, "unidad": "uds"},
 ]
