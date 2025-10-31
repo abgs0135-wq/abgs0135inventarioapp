@@ -585,10 +585,17 @@ if selected_cat:
             foto_actual = ""
 
         # Mostrar la imagen si existe (URL o archivo)
-        if foto_actual:
-            st.image(foto_actual, width=250, caption=material_sel)
-        else:
-            st.info("Este material aún no tiene foto.")
+        if foto_actual and isinstance(foto_actual, str):
+    if foto_actual.startswith("http"):
+        # Es una URL válida
+        st.image(foto_actual, width=250, caption=material_sel)
+    elif os.path.exists(foto_actual):
+        # Es una ruta local válida
+        st.image(foto_actual, width=250, caption=material_sel)
+    else:
+        st.info("La imagen asociada no existe o la ruta no es válida.")
+else:
+    st.info("Este material aún no tiene foto.")
 
         # Solo usuarios de mando pueden editar la foto
         if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is not None:
