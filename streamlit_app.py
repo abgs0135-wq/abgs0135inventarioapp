@@ -603,40 +603,28 @@ if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is
             st.rerun()
 
     with col_img2:
-    up = st.file_uploader("📸 Sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
-    if up is not None:
-        try:
-            # Crear carpeta destino
+        up = st.file_uploader("📷 Sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
+        if up is not None:
+            # carpeta destino
             img_dir = os.path.join(DATA_DIR, "images")
             os.makedirs(img_dir, exist_ok=True)
 
-            # Leer imagen y redimensionar si es muy grande
-            img = Image.open(up)
-            max_width = 400
-            if img.width > max_width:
-                ratio = max_width / img.width
-                new_size = (max_width, int(img.height * ratio))
-                img = img.resize(new_size, Image.LANCZOS)
-
-            # Crear nombre seguro para el archivo
+            # nombre de archivo seguro
             ext = os.path.splitext(up.name)[1].lower() or ".png"
             base_name = f"{selected_cat}__{material_sel}".replace("/", "_").replace("\\", "_").replace(" ", "_")
             img_path = os.path.join(img_dir, base_name + ext)
 
-            # Guardar imagen comprimida
-            img.save(img_path, optimize=True, quality=80)
+            # guardar archivo
+            with open(img_path, "wb") as f:
+                f.write(up.getbuffer())
 
-            # Actualizar inventario con la nueva ruta
             inv_df.loc[idx_sel, "foto"] = img_path
             save_inventory(inv_df)
-
-            st.success("✅ Imagen subida, redimensionada y guardada correctamente.")
-            st.image(img_path, width=250, caption="Vista previa")
+            st.success("Imagen subida y asociada al material.")
             st.rerun()
 
         except Exception as e:
             st.error(f"❌ Error al procesar la imagen: {e}")
-
 
         accion_mov = st.radio(
         "Acción",
