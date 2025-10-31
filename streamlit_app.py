@@ -259,17 +259,20 @@ def init_data():
     if not os.path.exists(INV_FILE):
         pd.DataFrame(INVENTARIO_BASE, columns=INV_COLS).to_csv(INV_FILE, index=False)
     else:
-    # si ya existe pero le faltan columnas nuevas, parcheamos el fichero
+        # si ya existe pero le faltan columnas nuevas, parcheamos el fichero
         df_inv = pd.read_csv(INV_FILE)
-    # añadir columnas que falten con valores por defecto
-    for c in INV_COLS:
-        if c not in df_inv.columns:
-            df_inv[c] = "" if c == "foto" else 0
-    # asegurar tipos básicos
-    for c in ["cantidad_total", "en_parque", "fuera_parque", "operativos"]:
-        if c in df_inv.columns:
-            df_inv[c] = pd.to_numeric(df_inv[c], errors="coerce").fillna(0).astype(int)
-    df_inv.to_csv(INV_FILE, index=False)
+
+        # añadir columnas que falten con valores por defecto
+        for c in INV_COLS:
+            if c not in df_inv.columns:
+                df_inv[c] = "" if c == "foto" else 0
+
+        # asegurar tipos básicos
+        for c in ["cantidad_total", "en_parque", "fuera_parque", "operativos"]:
+            if c in df_inv.columns:
+                df_inv[c] = pd.to_numeric(df_inv[c], errors="coerce").fillna(0).astype(int)
+
+        df_inv.to_csv(INV_FILE, index=False)
 
     # movimientos.csv
     if not os.path.exists(LOG_FILE):
@@ -544,16 +547,16 @@ if selected_cat:
     cat_inv_filtrado = cat_inv[mask]
 
     # Si existe la columna 'foto', la mostramos como columna de imagen
-if "foto" in cat_inv_filtrado.columns:
-    st.dataframe(
-        cat_inv_filtrado,
-        use_container_width=True,
-        column_config={
-            "foto": st.column_config.ImageColumn("Foto", width="small")
-        }
-    )
-else:
-    st.dataframe(cat_inv_filtrado, use_container_width=True)
+    if "foto" in cat_inv_filtrado.columns:
+        st.dataframe(
+            cat_inv_filtrado,
+            use_container_width=True,
+            column_config={
+                "foto": st.column_config.ImageColumn("Foto", width="small")
+            }
+        )
+    else:
+        st.dataframe(cat_inv_filtrado, use_container_width=True)
 
     tab1, tab2 = st.tabs(["🔁 Registrar movimiento", "🕓 Ver historial"])
 
