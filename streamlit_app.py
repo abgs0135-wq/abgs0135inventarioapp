@@ -260,7 +260,7 @@ def init_data():
         pd.DataFrame(INVENTARIO_BASE, columns=INV_COLS).to_csv(INV_FILE, index=False)
     else:
     # si ya existe pero le faltan columnas nuevas, parcheamos el fichero
-    df_inv = pd.read_csv(INV_FILE)
+        df_inv = pd.read_csv(INV_FILE)
     # añadir columnas que falten con valores por defecto
     for c in INV_COLS:
         if c not in df_inv.columns:
