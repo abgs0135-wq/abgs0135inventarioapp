@@ -548,7 +548,7 @@ if selected_cat:
         st.subheader("Registrar movimiento")
         material_sel = st.selectbox("Material", cat_inv["material"])
         cant_mov = st.number_input("Cantidad", min_value=1, step=1, value=1)
-           accion_mov = st.radio(
+        accion_mov = st.radio(
         "Acción",
         ["Sacar", "Devolver", "Marcar inoperativo", "Marcar operativo"],
         horizontal=True
