@@ -534,20 +534,21 @@ if selected_cat:
     cat_inv["inoperativos"] = cat_inv["cantidad_total"] - cat_inv["operativos"]
 
     # Aplicamos filtros
-    mask = pd.Series(True, index=cat_inv.index)
+mask = pd.Series(True, index=cat_inv.index)
 
-    if "En parque" not in filtro_ubicacion:
-        mask &= cat_inv["en_parque"] == 0
-    if "Fuera de parque" not in filtro_ubicacion:
-        mask &= cat_inv["fuera_parque"] == 0
-    if "Operativo" not in filtro_operativo:
-        mask &= cat_inv["operativos"] == 0
-    if "Inoperativo" not in filtro_operativo:
-        mask &= cat_inv["inoperativos"] == 0
+if "En parque" not in filtro_ubicacion:
+    mask &= cat_inv["en_parque"] == 0
+if "Fuera de parque" not in filtro_ubicacion:
+    mask &= cat_inv["fuera_parque"] == 0
+if "Operativo" not in filtro_operativo:
+    mask &= cat_inv["operativos"] == 0
+if "Inoperativo" not in filtro_operativo:
+    mask &= cat_inv["inoperativos"] == 0
 
-    cat_inv_filtrado = cat_inv[mask]
+cat_inv_filtrado = cat_inv[mask]
 
-    if "foto" in cat_inv_filtrado.columns:
+# Si existe la columna 'foto', mostramos imágenes en miniatura
+if "foto" in cat_inv_filtrado.columns:
     st.dataframe(
         cat_inv_filtrado,
         use_container_width=True,
@@ -563,6 +564,7 @@ if selected_cat:
     )
 else:
     st.dataframe(cat_inv_filtrado, use_container_width=True)
+
 
     tab1, tab2 = st.tabs(["🔁 Registrar movimiento", "🕓 Ver historial"])
 
