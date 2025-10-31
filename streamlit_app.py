@@ -602,14 +602,14 @@ if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is
             st.success("URL de foto guardada.")
             st.rerun()
 
-    with col_img2:
-        up = st.file_uploader("📷 Sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
-        if up is not None:
+   with col_img2:
+       up = st.file_uploader("📷 Sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
+       if up is not None:
+         try:
             # carpeta destino
             img_dir = os.path.join(DATA_DIR, "images")
             os.makedirs(img_dir, exist_ok=True)
 
-            # nombre de archivo seguro
             ext = os.path.splitext(up.name)[1].lower() or ".png"
             base_name = f"{selected_cat}__{material_sel}".replace("/", "_").replace("\\", "_").replace(" ", "_")
             img_path = os.path.join(img_dir, base_name + ext)
@@ -623,8 +623,8 @@ if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is
             st.success("Imagen subida y asociada al material.")
             st.rerun()
 
-        except Exception as e:
-            st.error(f"❌ Error al procesar la imagen: {e}")
+         except Exception as e:
+            st.error(f"Error al guardar la imagen: {e}")
 
         accion_mov = st.radio(
         "Acción",
