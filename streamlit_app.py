@@ -533,38 +533,37 @@ if selected_cat:
     # Añadimos columna inoperativos
     cat_inv["inoperativos"] = cat_inv["cantidad_total"] - cat_inv["operativos"]
 
-    # Aplicamos filtros
-mask = pd.Series(True, index=cat_inv.index)
+       # Aplicamos filtros
+    mask = pd.Series(True, index=cat_inv.index)
 
-if "En parque" not in filtro_ubicacion:
-    mask &= cat_inv["en_parque"] == 0
-if "Fuera de parque" not in filtro_ubicacion:
-    mask &= cat_inv["fuera_parque"] == 0
-if "Operativo" not in filtro_operativo:
-    mask &= cat_inv["operativos"] == 0
-if "Inoperativo" not in filtro_operativo:
-    mask &= cat_inv["inoperativos"] == 0
+    if "En parque" not in filtro_ubicacion:
+        mask &= cat_inv["en_parque"] == 0
+    if "Fuera de parque" not in filtro_ubicacion:
+        mask &= cat_inv["fuera_parque"] == 0
+    if "Operativo" not in filtro_operativo:
+        mask &= cat_inv["operativos"] == 0
+    if "Inoperativo" not in filtro_operativo:
+        mask &= cat_inv["inoperativos"] == 0
 
-cat_inv_filtrado = cat_inv[mask]
+    cat_inv_filtrado = cat_inv[mask]
 
-# Si existe la columna 'foto', mostramos imágenes en miniatura
-if "foto" in cat_inv_filtrado.columns:
-    st.dataframe(
-        cat_inv_filtrado,
-        use_container_width=True,
-        column_config={
-            "foto": st.column_config.ImageColumn("Foto", width="small"),
-            "material": "Material",
-            "cantidad_total": "Total",
-            "en_parque": "En parque",
-            "fuera_parque": "Fuera de parque",
-            "operativos": "Operativos",
-            "unidad": "Unidad"
-        }
-    )
-else:
-    st.dataframe(cat_inv_filtrado, use_container_width=True)
-
+    # Si existe la columna 'foto', mostramos imágenes en miniatura
+    if "foto" in cat_inv_filtrado.columns:
+        st.dataframe(
+            cat_inv_filtrado,
+            use_container_width=True,
+            column_config={
+                "foto": st.column_config.ImageColumn("Foto", width="small"),
+                "material": "Material",
+                "cantidad_total": "Total",
+                "en_parque": "En parque",
+                "fuera_parque": "Fuera de parque",
+                "operativos": "Operativos",
+                "unidad": "Unidad"
+            }
+        )
+    else:
+        st.dataframe(cat_inv_filtrado, use_container_width=True)
 
     tab1, tab2 = st.tabs(["🔁 Registrar movimiento", "🕓 Ver historial"])
 
@@ -573,140 +572,139 @@ else:
         st.subheader("Registrar movimiento")
         material_sel = st.selectbox("Material", cat_inv["material"])
         cant_mov = st.number_input("Cantidad", min_value=1, step=1, value=1)
+
         # === Foto del material seleccionado + edición (mando) ===
-# recuperar la ruta/url de foto del material seleccionado
-try:
-    idx_sel = inv_df.index[(inv_df["categoria"] == selected_cat) & (inv_df["material"] == material_sel)][0]
-    foto_actual = inv_df.loc[idx_sel, "foto"] if "foto" in inv_df.columns else ""
-except Exception:
-    idx_sel = None
-    foto_actual = ""
+        try:
+            idx_sel = inv_df.index[
+                (inv_df["categoria"] == selected_cat) &
+                (inv_df["material"] == material_sel)
+            ][0]
+            foto_actual = inv_df.loc[idx_sel, "foto"] if "foto" in inv_df.columns else ""
+        except Exception:
+            idx_sel = None
+            foto_actual = ""
 
-# Mostrar la imagen si existe (URL o archivo)
-if foto_actual:
-    # si es un archivo local existente o una URL, Streamlit lo mostrará
-    st.image(foto_actual, width=250, caption=material_sel)
-else:
-    st.info("Este material aún no tiene foto.")
+        # Mostrar la imagen si existe (URL o archivo)
+        if foto_actual:
+            st.image(foto_actual, width=250, caption=material_sel)
+        else:
+            st.info("Este material aún no tiene foto.")
 
-# Solo usuarios de mando pueden editar la foto
-if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is not None:
-    st.markdown("**📷 Asignar/actualizar foto del material**")
-    col_img1, col_img2 = st.columns(2)
+        # Solo usuarios de mando pueden editar la foto
+        if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is not None:
+            st.markdown("**📷 Asignar/actualizar foto del material**")
+            col_img1, col_img2 = st.columns(2)
 
-    with col_img1:
-        nueva_url = st.text_input("URL de la imagen (opcional)", value=foto_actual if isinstance(foto_actual, str) and foto_actual.startswith("http") else "")
-        if st.button("Guardar URL de foto"):
-            inv_df.loc[idx_sel, "foto"] = nueva_url.strip()
-            save_inventory(inv_df)
-            st.success("URL de foto guardada.")
-            st.rerun()
+            with col_img1:
+                nueva_url = st.text_input(
+                    "URL de la imagen (opcional)",
+                    value=foto_actual if isinstance(foto_actual, str) and foto_actual.startswith("http") else ""
+                )
+                if st.button("Guardar URL de foto"):
+                    inv_df.loc[idx_sel, "foto"] = nueva_url.strip()
+                    save_inventory(inv_df)
+                    st.success("URL de foto guardada.")
+                    st.rerun()
 
-   with col_img2:
-       up = st.file_uploader("📷 Sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
-       if up is not None:
-         try:
-            # carpeta destino
-            img_dir = os.path.join(DATA_DIR, "images")
-            os.makedirs(img_dir, exist_ok=True)
+            with col_img2:
+                up = st.file_uploader("📷 Sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
+                if up is not None:
+                    try:
+                        img_dir = os.path.join(DATA_DIR, "images")
+                        os.makedirs(img_dir, exist_ok=True)
 
-            ext = os.path.splitext(up.name)[1].lower() or ".png"
-            base_name = f"{selected_cat}__{material_sel}".replace("/", "_").replace("\\", "_").replace(" ", "_")
-            img_path = os.path.join(img_dir, base_name + ext)
+                        ext = os.path.splitext(up.name)[1].lower() or ".png"
+                        base_name = f"{selected_cat}__{material_sel}".replace("/", "_").replace("\\", "_").replace(" ", "_")
+                        img_path = os.path.join(img_dir, base_name + ext)
 
-            # guardar archivo
-            with open(img_path, "wb") as f:
-                f.write(up.getbuffer())
+                        with open(img_path, "wb") as f:
+                            f.write(up.getbuffer())
 
-            inv_df.loc[idx_sel, "foto"] = img_path
-            save_inventory(inv_df)
-            st.success("Imagen subida y asociada al material.")
-            st.rerun()
+                        inv_df.loc[idx_sel, "foto"] = img_path
+                        save_inventory(inv_df)
+                        st.success("Imagen subida y asociada al material.")
+                        st.rerun()
 
-         except Exception as e:
-            st.error(f"Error al guardar la imagen: {e}")
+                    except Exception as e:
+                        st.error(f"Error al guardar la imagen: {e}")
 
         accion_mov = st.radio(
-        "Acción",
-        ["Sacar", "Devolver", "Marcar inoperativo", "Marcar operativo"],
-        horizontal=True
-    )
-    observ_mov = st.text_input("Observación (opcional)", "")
-    descontar = False
-    if accion_mov == "Marcar inoperativo":
-        descontar = st.checkbox("Descontar también del parque")
+            "Acción",
+            ["Sacar", "Devolver", "Marcar inoperativo", "Marcar operativo"],
+            horizontal=True
+        )
+        observ_mov = st.text_input("Observación (opcional)", "")
+        descontar = False
+        if accion_mov == "Marcar inoperativo":
+            descontar = st.checkbox("Descontar también del parque")
 
-    if st.button("Confirmar movimiento", type="primary"):
-        # localizar la fila en el DF general
-        idx = inv_df.index[
-            (inv_df["categoria"] == selected_cat) &
-            (inv_df["material"] == material_sel)
-        ][0]
+        if st.button("Confirmar movimiento", type="primary"):
+            idx = inv_df.index[
+                (inv_df["categoria"] == selected_cat) &
+                (inv_df["material"] == material_sel)
+            ][0]
 
-        if accion_mov == "Sacar":
-            if int(inv_df.loc[idx, "en_parque"]) >= cant_mov:
-                inv_df.loc[idx, "en_parque"] -= cant_mov
-                inv_df.loc[idx, "fuera_parque"] += cant_mov
-                st.success(f"Sacaste {cant_mov} {material_sel}")
-            else:
-                st.error("No hay suficiente stock en parque")
-                st.stop()
-
-        elif accion_mov == "Devolver":
-            if int(inv_df.loc[idx, "fuera_parque"]) >= cant_mov:
-                inv_df.loc[idx, "fuera_parque"] -= cant_mov
-                inv_df.loc[idx, "en_parque"] += cant_mov
-                st.success(f"Devolviste {cant_mov} {material_sel}")
-            else:
-                st.error("No hay suficiente stock fuera del parque")
-                st.stop()
-
-        elif accion_mov == "Marcar inoperativo":
-            if int(inv_df.loc[idx, "operativos"]) >= cant_mov:
-                inv_df.loc[idx, "operativos"] -= cant_mov
-                if descontar and int(inv_df.loc[idx, "en_parque"]) >= cant_mov:
+            if accion_mov == "Sacar":
+                if int(inv_df.loc[idx, "en_parque"]) >= cant_mov:
                     inv_df.loc[idx, "en_parque"] -= cant_mov
-                st.success(f"Marcaste {cant_mov} {material_sel} como inoperativo")
-            else:
-                st.error("No hay suficientes materiales operativos")
-                st.stop()
+                    inv_df.loc[idx, "fuera_parque"] += cant_mov
+                    st.success(f"Sacaste {cant_mov} {material_sel}")
+                else:
+                    st.error("No hay suficiente stock en parque")
+                    st.stop()
 
-        elif accion_mov == "Marcar operativo":
-            inoperativos_actuales = int(inv_df.loc[idx, "cantidad_total"] - inv_df.loc[idx, "operativos"])
-            if inoperativos_actuales >= cant_mov:
-                inv_df.loc[idx, "operativos"] += cant_mov
-                st.success(f"Marcaste {cant_mov} {material_sel} como operativo nuevamente")
-            else:
-                st.error("No hay suficientes materiales inoperativos para marcar como operativos")
-                st.stop()
+            elif accion_mov == "Devolver":
+                if int(inv_df.loc[idx, "fuera_parque"]) >= cant_mov:
+                    inv_df.loc[idx, "fuera_parque"] -= cant_mov
+                    inv_df.loc[idx, "en_parque"] += cant_mov
+                    st.success(f"Devolviste {cant_mov} {material_sel}")
+                else:
+                    st.error("No hay suficiente stock fuera del parque")
+                    st.stop()
 
-        save_inventory(inv_df)
-        nuevo = pd.DataFrame([{
-            "usuario": st.session_state.user,
-            "categoria": selected_cat,
-            "material": material_sel,
-            "cantidad": cant_mov,
-            "accion": accion_mov,
-            "hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "observacion": observ_mov
-        }], columns=LOG_COLS)
-        log_df = pd.concat([load_log(), nuevo], ignore_index=True)
-        save_log(log_df)
+            elif accion_mov == "Marcar inoperativo":
+                if int(inv_df.loc[idx, "operativos"]) >= cant_mov:
+                    inv_df.loc[idx, "operativos"] -= cant_mov
+                    if descontar and int(inv_df.loc[idx, "en_parque"]) >= cant_mov:
+                        inv_df.loc[idx, "en_parque"] -= cant_mov
+                    st.success(f"Marcaste {cant_mov} {material_sel} como inoperativo")
+                else:
+                    st.error("No hay suficientes materiales operativos")
+                    st.stop()
 
-       # ========== TAB 2: Historial ==========
+            elif accion_mov == "Marcar operativo":
+                inoperativos_actuales = int(inv_df.loc[idx, "cantidad_total"] - inv_df.loc[idx, "operativos"])
+                if inoperativos_actuales >= cant_mov:
+                    inv_df.loc[idx, "operativos"] += cant_mov
+                    st.success(f"Marcaste {cant_mov} {material_sel} como operativo nuevamente")
+                else:
+                    st.error("No hay suficientes materiales inoperativos para marcar como operativos")
+                    st.stop()
+
+            save_inventory(inv_df)
+            nuevo = pd.DataFrame([{
+                "usuario": st.session_state.user,
+                "categoria": selected_cat,
+                "material": material_sel,
+                "cantidad": cant_mov,
+                "accion": accion_mov,
+                "hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "observacion": observ_mov
+            }], columns=LOG_COLS)
+            log_df = pd.concat([load_log(), nuevo], ignore_index=True)
+            save_log(log_df)
+
+    # ========== TAB 2: Historial ==========
     with tab2:
         st.subheader("Historial de movimientos")
 
         log_df = load_log()
 
-        # Asegurar que existe la columna 'categoria' (por si faltara en el CSV)
         if "categoria" not in log_df.columns:
             log_df["categoria"] = ""
 
-        # Filtrar los movimientos de la categoría actual
         log_cat = log_df[log_df["categoria"] == selected_cat].copy()
 
-        # Aseguramos que aparezcan todos los tipos de acción
         acciones_validas = [
             "Sacar", "Devolver",
             "Marcar inoperativo", "Marcar operativo",
@@ -714,17 +712,13 @@ if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is
         ]
         log_cat = log_cat[log_cat["accion"].isin(acciones_validas)]
 
-        # Ordenar por hora (más reciente primero)
         if not log_cat.empty:
             log_cat = log_cat.sort_values("hora", ascending=False)
-
-            # Mostrar la tabla
             st.dataframe(
                 log_cat[["hora", "usuario", "material", "cantidad", "accion", "observacion"]],
                 use_container_width=True
             )
 
-            # Contador resumen
             st.markdown("### 📊 Resumen de acciones registradas")
             total_acciones = log_cat["accion"].value_counts()
             st.bar_chart(total_acciones)
