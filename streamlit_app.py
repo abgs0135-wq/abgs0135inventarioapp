@@ -503,7 +503,7 @@ if selected_cat:
     cat_inv = inv_df[inv_df["categoria"] == selected_cat].copy()
     cat_inv["inoperativos"] = cat_inv["cantidad_total"] - cat_inv["operativos"]
 
-        st.subheader("Material en esta categoría")
+            st.subheader("Material en esta categoría")
 
     # Filtros de estado
     with st.expander("🔍 Filtros de visualización"):
@@ -539,7 +539,6 @@ if selected_cat:
     cat_inv_filtrado = cat_inv[mask]
 
     st.dataframe(cat_inv_filtrado, use_container_width=True)
-
 
     tab1, tab2 = st.tabs(["🔁 Registrar movimiento", "🕓 Ver historial"])
 
