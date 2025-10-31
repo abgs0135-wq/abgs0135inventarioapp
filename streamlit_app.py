@@ -548,63 +548,71 @@ if selected_cat:
         st.subheader("Registrar movimiento")
         material_sel = st.selectbox("Material", cat_inv["material"])
         cant_mov = st.number_input("Cantidad", min_value=1, step=1, value=1)
-        accion_mov = st.radio("Acción", ["Sacar", "Devolver", "Marcar inoperativo"], horizontal=True)
-        observ_mov = st.text_input("Observación (opcional)", "")
-        descontar = False
-        if accion_mov == "Marcar inoperativo":
-            descontar = st.checkbox("Descontar también del parque")
+           accion_mov = st.radio(
+        "Acción",
+        ["Sacar", "Devolver", "Marcar inoperativo", "Marcar operativo"],
+        horizontal=True
+    )
+    observ_mov = st.text_input("Observación (opcional)", "")
+    descontar = False
+    if accion_mov == "Marcar inoperativo":
+        descontar = st.checkbox("Descontar también del parque")
 
-        if st.button("Confirmar movimiento", type="primary"):
-            # localizar la fila en el DF general
-            idx = inv_df.index[
-                (inv_df["categoria"] == selected_cat) &
-                (inv_df["material"] == material_sel)
-            ][0]
+    if st.button("Confirmar movimiento", type="primary"):
+        # localizar la fila en el DF general
+        idx = inv_df.index[
+            (inv_df["categoria"] == selected_cat) &
+            (inv_df["material"] == material_sel)
+        ][0]
 
-            if accion_mov == "Sacar":
-                if int(inv_df.loc[idx, "en_parque"]) >= cant_mov:
+        if accion_mov == "Sacar":
+            if int(inv_df.loc[idx, "en_parque"]) >= cant_mov:
+                inv_df.loc[idx, "en_parque"] -= cant_mov
+                inv_df.loc[idx, "fuera_parque"] += cant_mov
+                st.success(f"Sacaste {cant_mov} {material_sel}")
+            else:
+                st.error("No hay suficiente stock en parque")
+                st.stop()
+
+        elif accion_mov == "Devolver":
+            if int(inv_df.loc[idx, "fuera_parque"]) >= cant_mov:
+                inv_df.loc[idx, "fuera_parque"] -= cant_mov
+                inv_df.loc[idx, "en_parque"] += cant_mov
+                st.success(f"Devolviste {cant_mov} {material_sel}")
+            else:
+                st.error("No hay suficiente stock fuera del parque")
+                st.stop()
+
+        elif accion_mov == "Marcar inoperativo":
+            if int(inv_df.loc[idx, "operativos"]) >= cant_mov:
+                inv_df.loc[idx, "operativos"] -= cant_mov
+                if descontar and int(inv_df.loc[idx, "en_parque"]) >= cant_mov:
                     inv_df.loc[idx, "en_parque"] -= cant_mov
-                    inv_df.loc[idx, "fuera_parque"] += cant_mov
-                    st.success(f"Sacaste {cant_mov} {material_sel}")
-                else:
-                    st.error("No hay suficiente stock en parque")
-                    st.stop()
+                st.success(f"Marcaste {cant_mov} {material_sel} como inoperativo")
+            else:
+                st.error("No hay suficientes materiales operativos")
+                st.stop()
 
-            elif accion_mov == "Devolver":
-                if int(inv_df.loc[idx, "fuera_parque"]) >= cant_mov:
-                    inv_df.loc[idx, "fuera_parque"] -= cant_mov
-                    inv_df.loc[idx, "en_parque"] += cant_mov
-                    st.success(f"Devolviste {cant_mov} {material_sel}")
-                else:
-                    st.error("No hay suficiente stock fuera del parque")
-                    st.stop()
+        elif accion_mov == "Marcar operativo":
+            inoperativos_actuales = int(inv_df.loc[idx, "cantidad_total"] - inv_df.loc[idx, "operativos"])
+            if inoperativos_actuales >= cant_mov:
+                inv_df.loc[idx, "operativos"] += cant_mov
+                st.success(f"Marcaste {cant_mov} {material_sel} como operativo nuevamente")
+            else:
+                st.error("No hay suficientes materiales inoperativos para marcar como operativos")
+                st.stop()
 
-            elif accion_mov == "Marcar inoperativo":
-                if int(inv_df.loc[idx, "operativos"]) >= cant_mov:
-                    inv_df.loc[idx, "operativos"] -= cant_mov
-                    if descontar and int(inv_df.loc[idx, "en_parque"]) >= cant_mov:
-                        inv_df.loc[idx, "en_parque"] -= cant_mov
-                    st.success(f"Marcaste {cant_mov} {material_sel} como inoperativo")
-                else:
-                    st.error("No hay suficientes materiales operativos")
-                    st.stop()
-
-            # guardamos inventario actualizado
-            save_inventory(inv_df)
-
-            # registramos el movimiento en el log
-            log_df = load_log()
-            nuevo_mov = pd.DataFrame([{
-                "usuario": st.session_state.user,
-                "categoria": selected_cat,
-                "material": material_sel,
-                "cantidad": cant_mov,
-                "accion": accion_mov,
-                "hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "observacion": observ_mov
-            }], columns=LOG_COLS)
-            log_df = pd.concat([log_df, nuevo_mov], ignore_index=True)
-            save_log(log_df)
+        save_inventory(inv_df)
+        nuevo = pd.DataFrame([{
+            "usuario": st.session_state.user,
+            "material": material_sel,
+            "cantidad": cant_mov,
+            "accion": accion_mov,
+            "hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "observacion": observ_mov
+        }], columns=LOG_COLS)
+        log_df = pd.concat([load_log(), nuevo], ignore_index=True)
+        save_log(log_df)
 
     # ========== TAB 2: Historial ==========
     with tab2:
