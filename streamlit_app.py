@@ -615,34 +615,43 @@ if selected_cat:
         log_df = pd.concat([load_log(), nuevo], ignore_index=True)
         save_log(log_df)
 
-   # ========== TAB 2: Historial ==========
-with tab2:
-    st.subheader("Historial de movimientos")
+       # ========== TAB 2: Historial ==========
+    with tab2:
+        st.subheader("Historial de movimientos")
 
-    log_df = load_log()
+        log_df = load_log()
 
-    # Filtrar los movimientos de la categoría actual
-    log_cat = log_df[log_df["categoria"] == selected_cat].copy()
+        # Asegurar que existe la columna 'categoria' (por si faltara en el CSV)
+        if "categoria" not in log_df.columns:
+            log_df["categoria"] = ""
 
-    # Aseguramos que aparezcan también los nuevos tipos de acción
-    acciones_validas = [
-        "Sacar", "Devolver", "Marcar inoperativo", "Marcar operativo"
-    ]
-    log_cat = log_cat[log_cat["accion"].isin(acciones_validas)]
+        # Filtrar los movimientos de la categoría actual
+        log_cat = log_df[log_df["categoria"] == selected_cat].copy()
 
-    # Ordenar por hora (más reciente primero)
-    log_cat = log_cat.sort_values("hora", ascending=False)
+        # Aseguramos que aparezcan todos los tipos de acción
+        acciones_validas = [
+            "Sacar", "Devolver",
+            "Marcar inoperativo", "Marcar operativo",
+            "Añadir material nuevo"
+        ]
+        log_cat = log_cat[log_cat["accion"].isin(acciones_validas)]
 
-    # Mostrar la tabla
-    st.dataframe(
-        log_cat[["hora", "usuario", "material", "cantidad", "accion", "observacion"]],
-        use_container_width=True
-    )
+        # Ordenar por hora (más reciente primero)
+        if not log_cat.empty:
+            log_cat = log_cat.sort_values("hora", ascending=False)
 
-    # Contador resumen
-    total_acciones = log_cat["accion"].value_counts()
-    st.markdown("### 📊 Resumen de acciones registradas")
-    st.bar_chart(total_acciones)
+            # Mostrar la tabla
+            st.dataframe(
+                log_cat[["hora", "usuario", "material", "cantidad", "accion", "observacion"]],
+                use_container_width=True
+            )
+
+            # Contador resumen
+            st.markdown("### 📊 Resumen de acciones registradas")
+            total_acciones = log_cat["accion"].value_counts()
+            st.bar_chart(total_acciones)
+        else:
+            st.info("No hay movimientos registrados todavía para esta categoría.")
 
 # =========================
 # Gestión de materiales (solo teniente / sargento)
