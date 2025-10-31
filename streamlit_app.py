@@ -245,7 +245,7 @@ INVENTARIO_BASE = [
 
 ]
 
-INV_COLS = ["categoria", "material", "cantidad_total", "en_parque", "fuera_parque", "operativos", "unidad"]
+INV_COLS = ["categoria", "material", "cantidad_total", "en_parque", "fuera_parque", "operativos", "unidad", "foto"]
 LOG_COLS = ["usuario", "categoria", "material", "cantidad", "accion", "hora", "observacion"]
 USER_COLS = ["usuario", "password", "nombre", "correo"]
 
@@ -259,12 +259,17 @@ def init_data():
     if not os.path.exists(INV_FILE):
         pd.DataFrame(INVENTARIO_BASE, columns=INV_COLS).to_csv(INV_FILE, index=False)
     else:
-        # si ya existe pero le faltan columnas nuevas, podríamos parchear aquí si hiciera falta
-        df_inv = pd.read_csv(INV_FILE)
-        faltan_cols = [c for c in INV_COLS if c not in df_inv.columns]
-        if faltan_cols:
-            # caso extremo: si el inventario viejo no tiene formato nuevo, lo reescribimos
-            pd.DataFrame(INVENTARIO_BASE, columns=INV_COLS).to_csv(INV_FILE, index=False)
+    # si ya existe pero le faltan columnas nuevas, parcheamos el fichero
+    df_inv = pd.read_csv(INV_FILE)
+    # añadir columnas que falten con valores por defecto
+    for c in INV_COLS:
+        if c not in df_inv.columns:
+            df_inv[c] = "" if c == "foto" else 0
+    # asegurar tipos básicos
+    for c in ["cantidad_total", "en_parque", "fuera_parque", "operativos"]:
+        if c in df_inv.columns:
+            df_inv[c] = pd.to_numeric(df_inv[c], errors="coerce").fillna(0).astype(int)
+    df_inv.to_csv(INV_FILE, index=False)
 
     # movimientos.csv
     if not os.path.exists(LOG_FILE):
@@ -538,8 +543,17 @@ if selected_cat:
 
     cat_inv_filtrado = cat_inv[mask]
 
+    # Si existe la columna 'foto', la mostramos como columna de imagen
+if "foto" in cat_inv_filtrado.columns:
+    st.dataframe(
+        cat_inv_filtrado,
+        use_container_width=True,
+        column_config={
+            "foto": st.column_config.ImageColumn("Foto", width="small")
+        }
+    )
+else:
     st.dataframe(cat_inv_filtrado, use_container_width=True)
-
 
     tab1, tab2 = st.tabs(["🔁 Registrar movimiento", "🕓 Ver historial"])
 
@@ -548,6 +562,56 @@ if selected_cat:
         st.subheader("Registrar movimiento")
         material_sel = st.selectbox("Material", cat_inv["material"])
         cant_mov = st.number_input("Cantidad", min_value=1, step=1, value=1)
+        # === Foto del material seleccionado + edición (mando) ===
+# recuperar la ruta/url de foto del material seleccionado
+try:
+    idx_sel = inv_df.index[(inv_df["categoria"] == selected_cat) & (inv_df["material"] == material_sel)][0]
+    foto_actual = inv_df.loc[idx_sel, "foto"] if "foto" in inv_df.columns else ""
+except Exception:
+    idx_sel = None
+    foto_actual = ""
+
+# Mostrar la imagen si existe (URL o archivo)
+if foto_actual:
+    # si es un archivo local existente o una URL, Streamlit lo mostrará
+    st.image(foto_actual, width=250, caption=material_sel)
+else:
+    st.info("Este material aún no tiene foto.")
+
+# Solo usuarios de mando pueden editar la foto
+if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is not None:
+    st.markdown("**📷 Asignar/actualizar foto del material**")
+    col_img1, col_img2 = st.columns(2)
+
+    with col_img1:
+        nueva_url = st.text_input("URL de la imagen (opcional)", value=foto_actual if isinstance(foto_actual, str) and foto_actual.startswith("http") else "")
+        if st.button("Guardar URL de foto"):
+            inv_df.loc[idx_sel, "foto"] = nueva_url.strip()
+            save_inventory(inv_df)
+            st.success("URL de foto guardada.")
+            st.rerun()
+
+    with col_img2:
+        up = st.file_uploader("…o sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
+        if up is not None:
+            # carpeta destino
+            img_dir = os.path.join(DATA_DIR, "images")
+            os.makedirs(img_dir, exist_ok=True)
+
+            # nombre de archivo seguro
+            ext = os.path.splitext(up.name)[1].lower() or ".png"
+            base_name = f"{selected_cat}__{material_sel}".replace("/", "_").replace("\\", "_").replace(" ", "_")
+            img_path = os.path.join(img_dir, base_name + ext)
+
+            # guardar archivo
+            with open(img_path, "wb") as f:
+                f.write(up.getbuffer())
+
+            inv_df.loc[idx_sel, "foto"] = img_path
+            save_inventory(inv_df)
+            st.success("Imagen subida y asociada al material.")
+            st.rerun()
+
         accion_mov = st.radio(
         "Acción",
         ["Sacar", "Devolver", "Marcar inoperativo", "Marcar operativo"],
@@ -697,7 +761,8 @@ if st.session_state.user in ["teniente", "sargento"]:
                     "en_parque": nueva_cantidad,
                     "fuera_parque": 0,
                     "operativos": nueva_cantidad,
-                    "unidad": nueva_unidad
+                    "unidad": nueva_unidad,
+                    "foto": ""
                 }], columns=INV_COLS)
 
                 inv_df = pd.concat([inv_df, nueva_fila], ignore_index=True)
