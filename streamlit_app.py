@@ -605,6 +605,7 @@ if selected_cat:
         save_inventory(inv_df)
         nuevo = pd.DataFrame([{
             "usuario": st.session_state.user,
+            "categoria": selected_cat,
             "material": material_sel,
             "cantidad": cant_mov,
             "accion": accion_mov,
