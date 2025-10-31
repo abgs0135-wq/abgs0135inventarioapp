@@ -6,6 +6,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import secrets
+from PIL import Image
 
 # =========================
 # Configuración básica
@@ -546,17 +547,22 @@ if selected_cat:
 
     cat_inv_filtrado = cat_inv[mask]
 
-    # Si existe la columna 'foto', la mostramos como columna de imagen
     if "foto" in cat_inv_filtrado.columns:
-        st.dataframe(
-            cat_inv_filtrado,
-            use_container_width=True,
-            column_config={
-                "foto": st.column_config.ImageColumn("Foto", width="small")
-            }
-        )
-    else:
-        st.dataframe(cat_inv_filtrado, use_container_width=True)
+    st.dataframe(
+        cat_inv_filtrado,
+        use_container_width=True,
+        column_config={
+            "foto": st.column_config.ImageColumn("Foto", width="small"),
+            "material": "Material",
+            "cantidad_total": "Total",
+            "en_parque": "En parque",
+            "fuera_parque": "Fuera de parque",
+            "operativos": "Operativos",
+            "unidad": "Unidad"
+        }
+    )
+else:
+    st.dataframe(cat_inv_filtrado, use_container_width=True)
 
     tab1, tab2 = st.tabs(["🔁 Registrar movimiento", "🕓 Ver historial"])
 
@@ -595,25 +601,40 @@ if st.session_state.user in ["teniente", "sargento", "parquista"] and idx_sel is
             st.rerun()
 
     with col_img2:
-        up = st.file_uploader("…o sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
-        if up is not None:
-            # carpeta destino
+    up = st.file_uploader("📸 Sube imagen (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
+    if up is not None:
+        try:
+            # Crear carpeta destino
             img_dir = os.path.join(DATA_DIR, "images")
             os.makedirs(img_dir, exist_ok=True)
 
-            # nombre de archivo seguro
+            # Leer imagen y redimensionar si es muy grande
+            img = Image.open(up)
+            max_width = 400
+            if img.width > max_width:
+                ratio = max_width / img.width
+                new_size = (max_width, int(img.height * ratio))
+                img = img.resize(new_size, Image.LANCZOS)
+
+            # Crear nombre seguro para el archivo
             ext = os.path.splitext(up.name)[1].lower() or ".png"
             base_name = f"{selected_cat}__{material_sel}".replace("/", "_").replace("\\", "_").replace(" ", "_")
             img_path = os.path.join(img_dir, base_name + ext)
 
-            # guardar archivo
-            with open(img_path, "wb") as f:
-                f.write(up.getbuffer())
+            # Guardar imagen comprimida
+            img.save(img_path, optimize=True, quality=80)
 
+            # Actualizar inventario con la nueva ruta
             inv_df.loc[idx_sel, "foto"] = img_path
             save_inventory(inv_df)
-            st.success("Imagen subida y asociada al material.")
+
+            st.success("✅ Imagen subida, redimensionada y guardada correctamente.")
+            st.image(img_path, width=250, caption="Vista previa")
             st.rerun()
+
+        except Exception as e:
+            st.error(f"❌ Error al procesar la imagen: {e}")
+
 
         accion_mov = st.radio(
         "Acción",
