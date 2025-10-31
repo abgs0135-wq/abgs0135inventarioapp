@@ -614,13 +614,34 @@ if selected_cat:
         log_df = pd.concat([load_log(), nuevo], ignore_index=True)
         save_log(log_df)
 
-    # ========== TAB 2: Historial ==========
-    with tab2:
-        st.subheader("Historial de movimientos")
-        log_df = load_log()
-        log_cat = log_df[log_df["categoria"] == selected_cat].copy()
-        log_cat = log_cat.sort_values("hora", ascending=False)
-        st.dataframe(log_cat, use_container_width=True)
+   # ========== TAB 2: Historial ==========
+with tab2:
+    st.subheader("Historial de movimientos")
+
+    log_df = load_log()
+
+    # Filtrar los movimientos de la categoría actual
+    log_cat = log_df[log_df["categoria"] == selected_cat].copy()
+
+    # Aseguramos que aparezcan también los nuevos tipos de acción
+    acciones_validas = [
+        "Sacar", "Devolver", "Marcar inoperativo", "Marcar operativo"
+    ]
+    log_cat = log_cat[log_cat["accion"].isin(acciones_validas)]
+
+    # Ordenar por hora (más reciente primero)
+    log_cat = log_cat.sort_values("hora", ascending=False)
+
+    # Mostrar la tabla
+    st.dataframe(
+        log_cat[["hora", "usuario", "material", "cantidad", "accion", "observacion"]],
+        use_container_width=True
+    )
+
+    # Contador resumen
+    total_acciones = log_cat["accion"].value_counts()
+    st.markdown("### 📊 Resumen de acciones registradas")
+    st.bar_chart(total_acciones)
 
 # =========================
 # Gestión de materiales (solo teniente / sargento)
